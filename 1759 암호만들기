@@ -1,0 +1,32 @@
+import sys
+from itertools import combinations
+input = sys.stdin.readline
+
+L, C = map(int, input().split())
+alpha = list(input().rstrip().split())
+alpha.sort()
+alpha_dict = {}
+vowels = []
+consonants = []
+
+for key, value in enumerate(alpha):
+    alpha_dict[key] = value
+    if value in ['a', 'e', 'i', 'o', 'u']:
+        vowels.append(key)
+    else:
+        consonants.append(key)
+
+#print(alpha_dict)
+
+for combi in combinations(range(len(alpha_dict)), L):
+    ans = []
+    vowel_cnt, consonant_cnt = 0, 0
+    for num in combi:
+        if num in vowels:
+            vowel_cnt += 1
+        else:
+            consonant_cnt += 1
+        ans.append(alpha_dict[num])
+
+    if vowel_cnt >= 1 and consonant_cnt >= 2:
+        print(*ans, sep = '')
