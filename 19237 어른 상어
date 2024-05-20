@@ -1,0 +1,136 @@
+import sys
+import copy
+sys.setrecursionlimit(10 ** 6)
+input = sys.stdin.readline
+
+def move(x):
+    dx, dy = [0, -1, 1, 0, 0], [0, 0, 0, -1, 1]
+    return (dx[x], dy[x])
+
+def reverse_coordinate(x, y):
+    dir = 0
+    if x == -1 and y == 0:
+        dir = 2
+    elif x == 1 and y == 0:
+        dir = 1
+    elif x == 0 and y == -1:
+        dir = 4
+    else:
+        dir = 3
+    return dir
+
+def dfs(second, shark_, board_):
+    global default_shark
+    board = copy.deepcopy(board_)
+    shark = shark_
+    moved_shark = copy.deepcopy(default_shark)
+
+    #print(shark, second)
+
+    if second > 1000:
+        return -1
+    
+    if shark == 1:
+        return second
+    
+    for i in range(N):
+        for j in range(N):
+            moved = False
+            if board[i][j] and board[i][j][0] > 0:
+                if not moved_shark[board[i][j][0]]:
+                    for nd in dir[board[i][j][0]][dir_now[board[i][j][0]]]:
+                        nx, ny = move(nd)
+                        nx, ny = i + nx, j + ny
+                        if 0 <= nx < N and 0 <= ny < N and board_[nx][ny] == 0:
+                            #print(i, j, nx, ny)
+                            moved_shark[board[i][j][0]] = True
+                            if board[nx][ny]:
+                                #print('next is filled')
+                                board[nx][ny] = board[nx][ny] + [board[i][j][0], K]
+                            else:
+                                #print('next is not filled')
+                                #print(board[i][j][0], dir[board[i][j][0]], dir_now[board[i][j][0]])
+                                #print(dir[board[i][j][0]][dir_now[board[i][j][0]]])
+                                board[nx][ny] = [board[i][j][0], K]
+                            dir_now[board[i][j][0]] = reverse_coordinate(i - nx, j - ny)
+                            board[i][j] = [-board[i][j][0], board[i][j][1]]
+
+                            #print('-' * 35)
+                            #for u in range(N):
+                            #    print(*board[u])
+                            #print('-' * 35)
+                            
+                            moved = True
+                            break
+
+                    if not moved:
+                        #print('second started')
+                        for nd in dir[board[i][j][0]][dir_now[board[i][j][0]]]:
+                            nx, ny = move(nd)
+                            nx, ny = i + nx, j + ny
+                            #print(nx, ny, board[i][j])
+                            if 0 <= nx < N and 0 <= ny < N and board[nx][ny] and board[nx][ny][0] == -board[i][j][0]:
+                                #print('second found!')
+                                moved_shark[board[i][j][0]] = True
+                                board[nx][ny] = [board[i][j][0], K]
+                                dir_now[board[i][j][0]] = reverse_coordinate(i - nx, j - ny)
+                                board[i][j] = [-board[i][j][0], board[i][j][1]]
+
+                                break
+
+                        #print('-' * 35)
+                        #for u in range(N):
+                        #    print(*board[u])
+                        #print('-' * 35)
+
+                            
+    
+    for i in range(N):
+        for j in range(N):
+            if board[i][j] and len(board[i][j]) > 2:
+                min_shark = [board[i][j][0], board[i][j][1]]
+                for k in range(2, len(board[i][j]), 2):
+                    #print('shark eat')
+                    #print(board[i][j], min_shark)
+                    if board[i][j][k] < min_shark[0]:
+                        min_shark = [board[i][j][k], board[i][j][k + 1]]
+                    shark -= 1
+                    #print(shark)
+                board[i][j] = min_shark
+
+    for i in range(N):
+        for j in range(N):
+            if board[i][j]:
+                if board[i][j][0] > 0:
+                    continue
+                else:
+                    board[i][j] = [board[i][j][0], board[i][j][1] - 1]
+                    if board[i][j][1] == 0:
+                        board[i][j] = 0
+    
+    #print('-' * 35)
+    #for i in range(N):
+    #    print(*board[i])
+    #print('-' * 35)
+
+    return dfs(second + 1, shark, board)
+
+
+N, M, K = map(int, input().split())
+board = [list(map(int, input().split())) for _ in range(N)]
+
+for i in range(N):
+    for j in range(N):
+        if board[i][j]:
+            board[i][j] = [board[i][j], K]
+
+dir_now = [0] + list(map(int, input().split()))
+dir = [[] for _ in range(M + 1)]
+
+for i in range(1, M + 1):
+    direction = [[0, 0, 0, 0]] + [list(map(int, input().split())) for _ in range(4)]
+    dir[i] = direction
+
+default_shark = [True] + [False for _ in range(M)]
+
+print(dfs(0, M, board))
