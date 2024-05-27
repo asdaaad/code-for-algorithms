@@ -1,0 +1,165 @@
+import sys
+import copy
+from collections import deque
+input = sys.stdin.readline
+
+def compare(f_arr, s_arr):
+    for f, s in zip(f_arr, s_arr):
+        if f == s:
+            continue
+        elif f > s:
+            return False
+        else:
+            return True
+
+def clean(visited):
+    for i in range(N):
+        for j in range(N):
+            if board[i][j] == 0:
+                visited[i][j] = False
+    
+    return visited
+
+def bfs(x, y, visited):
+    #print('bfs : {}, {}'.format(x, y))
+    cnt = 1
+    rainbow, standard = 0, [x, y]
+    visited[x][y] = True
+    if board[x][y] == 0:
+        rainbow += 1
+    q = deque([(x, y)])
+    color = board[x][y]
+
+    while q:
+        x, y = q.popleft()
+        for i in range(4):
+            nx, ny = x + dx[i], y + dy[i]
+            if 0 <= nx < N and 0 <= ny < N and not visited[nx][ny] and (board[nx][ny] == 0 or board[nx][ny] == color):
+                visited[nx][ny] = True
+                cnt += 1
+                q.append((nx, ny))
+                if board[nx][ny] == 0:
+                    rainbow += 1
+                
+                if nx < standard[0] and board[nx][ny] != 0:
+                    standard = [nx, ny]
+                elif board[nx][ny] != 0 and nx == standard[0] and ny < standard[1]:
+                    standard = [nx, ny]
+
+    return [cnt, rainbow, standard[0], standard[1]]             
+                
+def biggest(board):
+    #print('biggest')
+    global max_block
+    max_block = [-1, -1, -1, -1]
+    possible = 0
+    visited = [[False] * N for _ in range(N)]
+    for i in range(N):
+        for j in range(N):
+            if board[i][j] == -1 or board[i][j] == ' ':
+                visited[i][j] = True
+                possible += 1
+
+    for i in range(N):
+        for j in range(N):
+            if not visited[i][j] and board[i][j] > 0:
+                new_block = bfs(i, j, visited)
+
+                if max_block == [-1, -1, -1, -1]:
+                    max_block = new_block
+                elif compare(max_block, new_block):
+                    max_block = new_block
+
+                visited = clean(visited)
+
+    if max_block[0] <= 1:
+        return False
+    
+    #print(max_block)
+
+    return True
+
+def deleted_block(board, max_block):
+    #print('delete')
+    global score
+    x, y = max_block[2], max_block[3]
+    q = deque([(x, y)])
+    width = 1
+    visited = [[False] * N for _ in range(N)]
+    visited[x][y] = True
+    color = board[x][y]
+    board[x][y] = ' '
+    while q:
+        x, y = q.popleft()
+        for i in range(4):
+            nx, ny = x + dx[i], y + dy[i]
+            if 0 <= nx < N and 0 <= ny < N and visited[nx][ny] == False and (board[nx][ny] == color or board[nx][ny] == 0):
+                width += 1
+                visited[nx][ny] = True
+                board[nx][ny] = ' '
+                q.append((nx, ny))
+
+    if width > 1:
+        score += width ** 2
+    #print('score : ', score)
+    return board
+
+def gravity(board):
+    #print('gravity')
+    for j in range(N):
+        q = deque()
+        for i in range(N - 1, -1, -1):
+            if board[i][j] == ' ':
+                q.append((i, j))
+            elif board[i][j] == -1:
+                q = deque()
+            else:
+                if q:
+                    x, y = q.popleft()
+                    board[x][y] = board[i][j]
+                    board[i][j] = ' '
+                    q.append((i, j))
+
+    return board
+
+def rotate(board):
+    #print('rotate')
+    rotated_board = copy.deepcopy(board)
+
+    for i in range(N):
+        for j in range(N):
+            rotated_board[rj[j]][i] = board[i][j]
+
+    return rotated_board
+
+def print_board(board):
+    print('-' * 20)
+    for i in range(N):
+        print(*board[i])
+    print('=' * 20)
+
+N, M = map(int, input().split())
+board = [list(map(int, input().split())) for _ in range(N)]
+dx, dy = [0, 0, 1, -1], [1, -1, 0, 0]
+score = 0
+max_block = [-1, -1, -1, -1]
+
+rj = {}
+val = 0
+for i in range(N - 1, -1, -1):
+    if rj.get(i, 0) == 0:
+        rj[i] = val
+    val += 1
+
+while biggest(board):
+    #print_board(board)
+    board = deleted_block(board, max_block)
+    #print_board(board)
+    board = gravity(board)
+    #print_board(board)
+    board = rotate(board)
+    #print_board(board)
+    board = gravity(board)
+    #print_board(board)
+
+print(score)
