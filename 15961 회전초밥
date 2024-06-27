@@ -1,0 +1,38 @@
+import sys
+input = sys.stdin.readline
+
+N, d, k, c = map(int, input().split())
+sushi = []
+for _ in range(N):
+    sushi.append(int(input()))
+sushi = sushi + sushi
+
+sushi_kind = {}
+sushi_kind[c] = 1
+for neta in sushi[:k]:
+    if sushi_kind.get(neta, 0) == 0:
+        sushi_kind[neta] = 1
+    else:
+        sushi_kind[neta] += 1
+
+ans = len(sushi_kind)
+s, e = 0, k - 1
+
+while s < N:
+    first_sushi = sushi[s]
+    s += 1
+    e += 1
+    last_sushi = sushi[e]
+
+    sushi_kind[first_sushi] -= 1
+    if sushi_kind.get(first_sushi, 0) == 0:
+        del sushi_kind[first_sushi]
+    
+    if sushi_kind.get(last_sushi, 0) == 0:
+        sushi_kind[last_sushi] = 1
+    else:
+        sushi_kind[last_sushi] += 1
+    
+    ans = max(ans, len(sushi_kind))
+
+print(ans)
