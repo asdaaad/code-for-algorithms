@@ -1,0 +1,51 @@
+#include <iostream>
+#include <algorithm>
+#include <cmath>
+
+using namespace std;
+
+int main() {
+    double X, Y, D, T;
+    cin >> X >> Y >> D >> T;
+
+    double dist, time;
+    dist = sqrt(pow(X, 2) + pow(Y, 2));
+    //cout << "distance : " << dist << endl;
+    time = 0;
+
+    if (int(D / T) == 0) {
+        //cout << "jump has no meaning!" << endl;
+        cout << fixed;
+        cout.precision(10);
+        cout << dist;
+        return 0;
+    }
+
+    int cnt_jump;
+    cnt_jump = dist / D;
+
+    //cout << "cnt_jump : " << cnt_jump << endl;
+
+    dist -= cnt_jump * D;
+    time += cnt_jump * T;
+    if (cnt_jump >= 1) {
+        dist += D;
+        time -= T;
+        cnt_jump -= 1;
+    }
+
+    //cout << "time : " << time << endl;
+
+    time += min({D * 2 - dist + T * 2, T + abs(dist - D), T * 2, dist});
+    //cout << min({D * 2 - dist + T * 2, T + abs(dist - D), T * 2, dist}) << " is added" << endl;
+    //cout << "final_time : " << time;
+    cout << fixed;
+    cout.precision(10);
+    cout << time;
+
+    return 0;
+}
+
+/*
+두번 직전까지 뛰었다가 뛰어서 넘었다가 걸어가기, 한번 뛰고 걸어가기, 두 번 뛰기, 걸어가기 중 최솟값 출력
+*/
